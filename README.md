@@ -6,6 +6,10 @@ The full-screen basin runs two independent GPU simulations with identical initia
 
 `npm run check` runs syntax checks and CPU conservation/reference tests. Browser evidence is in `evidence/`; browser scripts use the Codex bundled Playwright installation on the development Mac.
 
+## Coupled sediment update
+
+The default now uses a 192-tree restoration belt, coupled visible root diameter/frontal area, forest upstream/inside/downstream metrics, erosion-emitted GPU sediment grains and stronger concentration-based Natural View optics. Display-only terrain change defaults to **50×**, clearly labelled; physical bed, water and sediment mass are unchanged by this display control. Tree canopy can be enabled; the initial view exposes roots to make transport and bed interaction visible. Gold flow markers remain separate from sediment grains. See [implementation and validation](docs/sediment-coupling.md).
+
 ## Scope and numerical limits
 
 This is an educational depth-averaged NLSW model, not a calibrated real-coast forecast. The 72 × 48 m domain uses 120 × 80 cells and a fixed 0.018 s step. Root segments are distributed into four vertical frontal-area bands. Both root rendering and resistance derive from those segments. Fine root wakes, vertical velocity, root-generated turbulence, underground reinforcement and animal behaviour are omitted. The shelter overlay is instantaneous; the readout averages recent samples.

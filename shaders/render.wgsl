@@ -27,7 +27,8 @@ fn surface(p:vec2f)->vec4f{let i=vec2u(clamp(p/view.grid.z,vec2f(0.),view.grid.x
 struct Out { @builtin(position) clip:vec4f, @location(0) world:vec3f, @location(1) normal:vec3f, @location(2) uv:vec2f, @location(3) data:vec4f, @location(4) tangent:vec4f }
 fn at(x:i32,z:i32)->Cell {return state[u32(clamp(z,0,i32(view.grid.y)-1)*i32(view.grid.x)+clamp(x,0,i32(view.grid.x)-1))];}
 fn sampleCell(p:vec2f)->Cell {let p0=p/view.grid.z-vec2f(.5);let i=vec2i(floor(p0));let f=fract(p0);let a=at(i.x,i.y);let b=at(i.x+1,i.y);let c=at(i.x,i.y+1);let d=at(i.x+1,i.y+1);return Cell(mix(mix(a.hydro,b.hydro,f.x),mix(c.hydro,d.hydro,f.x),f.y),mix(mix(a.bed,b.bed,f.x),mix(c.bed,d.bed,f.x),f.y),vec4f(0.));}
-fn elevation(x:i32,z:i32,water:bool)->f32 {let a=at(x,z);return a.bed.x+select(0.,a.hydro.x,water);}
+fn visualBed(a:Cell)->f32 {return a.bed.w+(a.bed.x-a.bed.w)*view.screen.w;}
+fn elevation(x:i32,z:i32,water:bool)->f32 {let a=at(x,z);return select(visualBed(a),a.bed.x+a.hydro.x,water);}
 fn terrainVertex(vertex:u32,water:bool)->Out {
  let corners=array<vec2u,6>(vec2u(0,0),vec2u(0,1),vec2u(1,1),vec2u(0,0),vec2u(1,1),vec2u(1,0));let i=vertex/6u;let nx=u32(view.grid.x)-1u;let coord=vec2u(i%nx,i/nx)+corners[vertex%6u];let x=i32(coord.x);let z=i32(coord.y);let a=at(x,z);let y=elevation(x,z,water);let pos=vec3f((f32(x)+.5)*view.grid.z,y,(f32(z)+.5)*view.grid.z);
  let n=normalize(vec3f(elevation(x-1,z,water)-elevation(x+1,z,water),2.*view.grid.z,elevation(x,z-1,water)-elevation(x,z+1,water)));
@@ -48,7 +49,7 @@ fn shadow(world:vec3f)->f32 {
 }
 fn diffuse(color:vec3f,n:vec3f,world:vec3f,ao:f32)->vec3f {let sky=vec3f(.55,.65,.72)*(.40+.14*max(n.y,0.));let direct=vec3f(1.,.94,.80)*max(dot(n,sun()),0.)*.95*shadow(world);return color*(sky+direct)*mix(.45,1.,ao);}
 fn bedColor(o:Out)->vec3f {
- let wet=max(surface(o.world.xz).y,.35*(1.-smoothstep(.0,.18,o.world.y-view.screen.z)));let mudWeight=.55+.35*smoothstep(32.,54.,o.world.x);
+ let wet=max(surface(o.world.xz).y,.35*(1.-smoothstep(.0,.18,o.world.y-view.screen.z)));let mudWeight=clamp(.55+.25*smoothstep(32.,54.,o.world.x)+.2*tanh(o.data.z/.001),0.,1.);
  let uv=o.world.xz/1.3;let suv=o.world.xz/30.;
  let mud=mix(textureSample(mudColor,groundSampler,uv).rgb,textureSample(mudColor,groundSampler,vec2f(-uv.y,uv.x)*.71+vec2f(.31,.72)).rgb,.45);let sand=textureSample(sandColor,groundSampler,suv).rgb;
  let ma=textureSample(mudArm,groundSampler,uv).rgb;let sa=textureSample(sandArm,groundSampler,suv).rgb;
@@ -65,8 +66,8 @@ fn bedColor(o:Out)->vec3f {
 @fragment fn bedFragment(o:Out)->@location(0) vec4f {
  if(view.eye.w<0.&&o.world.y<view.screen.z-.02){discard;}
  var color=bedColor(o);
- let initialHeight=o.world.y-o.data.z;let initialWidth=max(fwidth(initialHeight),.00003);let currentWidth=max(fwidth(o.world.y),.00003);
- if(view.options.y>.5){let initial=(1.-smoothstep(initialWidth*.3,initialWidth*1.3,abs(initialHeight)))*step(.45,fract(o.world.z*.7));let current=1.-smoothstep(currentWidth*.3,currentWidth*1.3,abs(o.world.y));color=mix(color,vec3f(.82,.87,.85),initial);color=mix(color,vec3f(.82,.65,.28),current);}
+ let physical=sampleCell(o.world.xz);let initialHeight=physical.bed.w-view.screen.z;let initialWidth=max(fwidth(initialHeight),.00003);let currentWidth=max(fwidth(o.world.y),.00003);
+ if(view.options.y>.5){let initial=(1.-smoothstep(initialWidth*.3,initialWidth*1.3,abs(initialHeight)))*step(.45,fract(o.world.z*.7));let current=1.-smoothstep(currentWidth*.3,currentWidth*1.3,abs(physical.bed.x-view.screen.z));color=mix(color,vec3f(.82,.87,.85),initial);color=mix(color,vec3f(.82,.65,.28),current);}
  return vec4f(srgb(color),1.);
 }
 // Inkwell dielectric Fresnel (retained with MIT notice).
@@ -106,8 +107,8 @@ fn sky(direction:vec3f)->vec3f {
  for(var step=0;step<8;step++){
   let distance=(f32(step)+.5)*path/8.;let p=o.world+ray*distance;let column=sampleCell(p.xz);
   let c=select(0.,column.hydro.w/max(column.hydro.x,.002),column.hydro.x>.002);
-  let extinction=vec3f(.57,.18,.09)+c*vec3f(.55,.72,.95);let segment=exp(-extinction*path/8.);
-  let scatter=mix(vec3f(.014,.12,.105),vec3f(.19,.14,.066),clamp(c*.7,0.,.75));
+  let extinction=vec3f(.57,.18,.09)+c*vec3f(2.5,3.5,5.);let segment=exp(-extinction*path/8.);
+  let scatter=mix(vec3f(.014,.12,.105),vec3f(.22,.13,.052),1.-exp(-c*4.));
   inScatter+=throughput*scatter*(vec3f(1.)-segment);throughput*=segment;
  }
  let refracted=floorColor*throughput+inScatter;
@@ -126,7 +127,7 @@ fn sky(direction:vec3f)->vec3f {
 }
 struct MeshIn { @location(0) pos:vec3f,@location(1) normal:vec3f,@location(2) uv:vec2f,@location(3) tangent:vec4f,@location(4) location:vec4f,@location(5) rotation:vec4f }
 fn bedOriginal(p:vec2f)->f32{return -1.65+2.05*p.x/72.+.045*sin(p.y*.16)*sin(p.x*.085)+.025*sin(p.y*.49+p.x*.13);}
-fn meshOut(v:MeshIn)->Out {let co=cos(v.rotation.x);let si=sin(v.rotation.x);let p=v.pos*v.location.w;var world=vec3f(p.x*co-p.z*si,p.y,p.x*si+p.z*co)+v.location.xyz;world.y+=(bedOriginal(world.xz)-v.location.y)*(1.-clamp(p.y/2.,0.,1.));let normal=vec3f(v.normal.x*co-v.normal.z*si,v.normal.y,v.normal.x*si+v.normal.z*co);var o:Out;o.world=world;o.clip=view.vp*vec4f(world,1.);o.normal=normal;o.uv=v.uv;o.tangent=vec4f(v.tangent.x*co-v.tangent.z*si,v.tangent.y,v.tangent.x*si+v.tangent.z*co,v.tangent.w);o.data=vec4f(v.rotation.y,p.y,0.,0.);return o;}
+fn meshOut(v:MeshIn)->Out {let co=cos(v.rotation.x);let si=sin(v.rotation.x);let stretch=vec3f(v.rotation.y,1.,v.rotation.y);let p=v.pos*v.location.w*stretch;var world=vec3f(p.x*co-p.z*si,p.y,p.x*si+p.z*co)+v.location.xyz;world.y+=(bedOriginal(world.xz)-v.location.y)*(1.-clamp(p.y/2.,0.,1.));let nn=normalize(v.normal/stretch);let normal=vec3f(nn.x*co-nn.z*si,nn.y,nn.x*si+nn.z*co);var o:Out;o.world=world;o.clip=view.vp*vec4f(world,1.);o.normal=normal;o.uv=v.uv;let tt=normalize(v.tangent.xyz*stretch);o.tangent=vec4f(tt.x*co-tt.z*si,tt.y,tt.x*si+tt.z*co,v.tangent.w);o.data=vec4f(v.rotation.y,p.y,0.,0.);return o;}
 @vertex fn meshVertex(v:MeshIn)->Out{return meshOut(v);}
 @vertex fn shadowVertex(v:MeshIn)->Out{var o=meshOut(v);o.clip=view.light*vec4f(o.world,1.);return o;}
 @fragment fn shadowFragment(o:Out){if(textureSample(matColor,matSampler,o.uv).a<.4){discard;}if(view.options.w>.5&&o.data.y>1.8){discard;}}
@@ -149,7 +150,7 @@ fn edgeVertex(id:u32,water:bool)->Out {
  let nx=u32(view.grid.x)-1u;let nz=u32(view.grid.y)-1u;let segment=id/6u;let corner=array<vec2u,6>(vec2u(0,0),vec2u(1,0),vec2u(1,1),vec2u(0,0),vec2u(1,1),vec2u(0,1))[id%6u];
  var coord=vec2u(0);var normal=vec3f(0.,0.,-1.);
  if(segment<nx){coord=vec2u(segment+corner.x,0u);}else if(segment<nx+nz){coord=vec2u(nx,segment-nx+corner.x);normal=vec3f(1.,0.,0.);}else if(segment<2u*nx+nz){coord=vec2u(segment-nx-nz+corner.x,nz);normal=vec3f(0.,0.,1.);}else{coord=vec2u(0u,segment-2u*nx-nz+corner.x);normal=vec3f(-1.,0.,0.);}
- let a=at(i32(coord.x),i32(coord.y));let bottom=select(-2.4,a.bed.x,water);let top=a.bed.x+select(0.,a.hydro.x,water);let y=mix(bottom,top,f32(corner.y));let world=vec3f((f32(coord.x)+.5)*view.grid.z,y,(f32(coord.y)+.5)*view.grid.z);var o:Out;o.clip=view.vp*vec4f(world,1.);o.world=world;o.normal=normal;o.uv=world.xz;o.data=vec4f(a.hydro.x,y-bottom,select(0.,1.,water),0.);o.tangent=vec4f(1.,0.,0.,1.);return o;
+ let a=at(i32(coord.x),i32(coord.y));let bottom=select(-2.4,visualBed(a),water);let top=select(visualBed(a),a.bed.x+a.hydro.x,water);let y=mix(bottom,top,f32(corner.y));let world=vec3f((f32(coord.x)+.5)*view.grid.z,y,(f32(coord.y)+.5)*view.grid.z);var o:Out;o.clip=view.vp*vec4f(world,1.);o.world=world;o.normal=normal;o.uv=world.xz;o.data=vec4f(a.hydro.x,y-bottom,select(0.,1.,water),0.);o.tangent=vec4f(1.,0.,0.,1.);return o;
 }
 @vertex fn bedEdgeVertex(@builtin(vertex_index) id:u32)->Out{return edgeVertex(id,false);}
 @vertex fn waterEdgeVertex(@builtin(vertex_index) id:u32)->Out{return edgeVertex(id,true);}

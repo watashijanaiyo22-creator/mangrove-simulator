@@ -1,3 +1,7 @@
+# Latest: coupled sediment and restoration belt
+
+The current implementation and reproduction commands are in [docs/sediment-coupling.md](docs/sediment-coupling.md). Older observations below describe prior defaults.
+
 # Visual/model update — 2026-09-05
 
 The initial canopy-only implementation below is superseded. Current runtime retains the supplied full root/trunk/leaf meshes and original maps, restores source leaf alpha, adds verified Poly Haven CC0 ground materials, Inkwell-derived water optics, alpha-aware shadows, reflection/refraction, and finite basin sides. Horizontal orbit is reversed; Shift-drag pans.

@@ -15,3 +15,16 @@
 .layout-label{display:flex;flex-direction:column;gap:6px;font-size:10px;margin:0 0 18px}.layout-label select{width:100%;padding:7px}.panel-note{margin-bottom:14px}@media(max-width:650px){.layout-label{grid-column:1/3;margin:2px 0;flex-direction:row;align-items:center;justify-content:space-between}.layout-label select{width:60%;padding:4px}.presets{margin:3px 0}#panel .range-label{grid-row:auto}#panel #wave,#panel #tide{grid-row:6}#panel .reset,#panel .model-button{grid-row:7}}
 /* Keep experiment controls reachable on short desktop viewports. */
 @media(min-width:761px){#panel{max-height:calc(100dvh - 170px);overflow-y:auto;}}
+
+/* Keep the paired scene above a scrollable control panel on phones. */
+@media(max-width:650px){
+ #panel,.numbers-hidden #panel{top:382px;bottom:174px;display:block;overflow-y:auto;max-height:none;}
+ .numbers-hidden #panel{bottom:12px;}
+ #panel .layout-label{display:flex;margin:10px 0;}
+ #panel .range-label{display:flex;margin-top:12px;}
+ #panel .modes{display:grid;grid-template-columns:repeat(3,1fr);margin-top:10px;}
+ #panel .check-row{margin:12px 0;}
+ #panel .presets{margin:10px 0;}
+ #panel .clock{margin-top:12px;}
+ #panel .panel-note{margin:8px 0;}
+}
