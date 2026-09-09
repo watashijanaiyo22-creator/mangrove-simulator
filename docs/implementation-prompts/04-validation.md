@@ -23,7 +23,7 @@
 初期/180s/1080sを同じカメラで撮影。natural/no numbers/no lines/no diagnostic tracer/no heatmap。全景と岸接写を両方残す。波1×10秒以上の動画、濁り輸送、泡寿命、根の埋没/露出を見る。格子artifact、根カード、テクスチャ滑り、反射混入を箇所と時刻付きで記録。減衰率や地形差を画像から推測して数値にしない。ユーザーの写真参照は美術目標、物理正解画像ではない。
 
 ## 実験マトリクス
-baseline96本・diameter1、wave0/.06/.18/.30m、tide-.1/0/.2m、period6/9/12sのうちまず単変量で基準条件との差を比較。全組合せ網羅は安定性確認後。解析窓はwave到達後の整数周期、sample間隔はperiod/32以下。forest前・内部・背後でH_rms、速度RMS、tauを測る。任意に最も都合のよい地点を選ばない。
+baseline96本・diameter1、wave0/.06/.18/.30m、tide-.1/0/.2m、period6/9/12sのうちまず単変量で基準条件との差を比較。全組合せ網羅は安定性確認後。解析窓はwave到達後の整数周期、sample間隔はperiod/32以下。forest前・内部・背後でH_equiv、速度RMS、tauを測る。任意に最も都合のよい地点を選ばない。
 
 ## 性能/操作
 同一M2、1440×960、左右表示、4×/8×で各60秒後に計測。別GPU負荷試験と同時実行しない。15分連続runで初期/5/10/15分のfps中央値/p95 frame time、actual speed、メモリを記録。30fpsを目標とするが未達を隠さない。機器温度を取得できなければ未測定と記す。
@@ -31,3 +31,5 @@ baseline96本・diameter1、wave0/.06/.18/.30m、tide-.1/0/.2m、period6/9/12s�
 
 ## 報告
 docs/implementation-prompts/reports/validation.mdに各要件PASS/FAIL/BLOCKED、証拠path、再現手順、期待/実際を記載。FAILは所有者へ送るが自分で本体修正しない。スクリーンショットだけでphysics PASS、テストだけでnatural quality PASSにしない。
+
+成分別許容差、固定撮影条件、証拠保全、中断再開は05を優先。テストがまだ未実装ならBLOCKEDではなくNOT-RUN。再現しなかった報告症状はNOT-REPRODUCEDとし、修正済みとは書かない。

@@ -13,7 +13,7 @@
 7. 累積Eだけで地面を削れた色にしない。初期bedとの差、net depositと浸水履歴を用いて既存地盤/堆積面/濡れをblend。現在1class sedimentなのでsand/mud別質量が存在するように装わない。素材は表面表現であることを親へ報告。
 8. 濁りはactual ms/max(h,dry)をray上でsample。水柱深さを超えて積分しない。海底/根の前景拒否、岸際depth fade、0濃度の透過を検証。A/B別field。
 9. 土砂観察markerは流速で移流、沈降速度で下降、bed交差で消失。発生weightはactual erosion flux、再浮遊はそのstepのerosionから。markerは描画proxyでありmassを加減しない。毎frame無条件に同じx帯へ撒く方式は使わない。budget/depositionに二重計上しない。
-10. Physicsのroot-proxy仕様が届いたら同じworld segmentsから半透明cylinder overlay生成。半径倍率とraster source一致、通常meshのカード根と二重表示を避ける方針を親と確認。元leaf/trunk texture保持。
+10. P1で固定・smoke済みのroot-proxy仕様に従い同じworld segmentsから半透明cylinder overlay生成。半径倍率とraster source一致、通常meshのカード根と二重表示を避ける方針を親と確認。元leaf/trunk texture保持。
 11. 根の埋没は更新地盤に対しfragment/geometryをclip。侵食時に存在しない地下根を伸ばして作らない。元meshの下端が露出したら限界を報告。
 12. 木の暗部はlinear-space ambient/direct光で改善。shadowを消して明るくしない。alphaカードの輪郭、mipmap、遠景aliasを同時確認。frame毎のtexture/bindgroup再生成禁止。
 
@@ -22,3 +22,5 @@
 14. device lost・resize・表示切替でresourceリークしない。disposeが所有GPU資源を解放。比較offの非表示caseはrender省略、physicsは比較のため継続。
 15. 自然表示、線off、数字off、tracer off、heatmap offで初期/経過後を撮影。差の可視性と写真のような質感を別評価。見分けられなければ何が隠しているか（波/透明度/照明/scale）を具体的に修正し再撮影。数値だけを成功理由にしない。
 成果: commit、before/after画像と1×動画、各case独立性、pauseテスト、resource/performance結果、未達事項。
+
+粒子発生APIと根proxyが未確定なら代替実装を推測しない。別の独立描画修正を進め、依存項目はBLOCKED-DEPENDENCYとして親に報告。自然表示の固定撮影と受入は05に従う。
