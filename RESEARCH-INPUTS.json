@@ -1,0 +1,31 @@
+{
+  "inspection_date": "2026-09-05",
+  "method": "Static archive/source and GLB metadata inspection; no runtime benchmark; upstream commit SHA unavailable",
+  "files": [
+    {
+      "file": "anugaSed-master.zip",
+      "bytes": 326042,
+      "sha256": "c8afaf09dc229973e3bb696333c8aeff48893c5f49c2c320d8de9e8749c45a5b"
+    },
+    {
+      "file": "inkwell-webgpu-water-main.zip",
+      "bytes": 13498059,
+      "sha256": "96a4993c4eadc554a706b4dfdcecbfd225baacd8a600c1baee4d99118cf19ab5"
+    },
+    {
+      "file": "mangrove-tree.zip",
+      "bytes": 115387953,
+      "sha256": "0a7d0c4503fd7a3b5b6422cd92a8c091e21814a9cbf70d245744640cf12be09a"
+    },
+    {
+      "file": "mangrove_tree.glb",
+      "bytes": 6158904,
+      "sha256": "022ef9b3a528e260c071096ea70109032f18a5f92eaacc74323a676f689317e7"
+    },
+    {
+      "file": "plynett.github.io-main.zip",
+      "bytes": 899578008,
+      "sha256": "e5383b515b6ac94ab99a140fd9f82a4d9d3ba2331bc9dd7e242da305295b0f91"
+    }
+  ]
+}

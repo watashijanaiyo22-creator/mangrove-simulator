@@ -1,0 +1,1 @@
+{"name":"mangrove-coastal-lab","version":"0.1.0","private":true,"type":"module","scripts":{"dev":"node scripts/serve.mjs","start":"node scripts/serve.mjs","test":"node --test tests/physics.test.mjs","check":"node --check src/app.js && node --check src/physics.js && node --check src/renderer.js && npm test"}}

@@ -1,0 +1,13 @@
+import test from 'node:test';import assert from 'node:assert/strict';
+import {CONFIG,initialState,makeForest,rasterRoots} from '../src/scenario.js';
+import {stepCPU,totals,drag,exchange} from '../src/physics.js';
+const c={...CONFIG,nx:24,ny:16,dx:.6};const roots=new Float32Array(c.nx*c.ny*4);const closed={boundary:false,sediment:false,vegetation:false};
+function flat(depth=1){const s=initialState(c);for(let i=0;i<s.length;i+=12){s[i]=depth;s[i+1]=s[i+2]=0;s[i+3]=depth*.12;s[i+4]=s[i+7]=-depth;}return s;}
+test('lake at rest over irregular bed: no spurious motion',()=>{let s=initialState(c);const original=s.slice();for(let k=0;k<100;k++)s=stepCPU(s,roots,c,closed);assert.ok(Math.max(...s.filter((_,i)=>i%12===1||i%12===2).map(Math.abs))<1e-5);assert.ok(Math.abs(totals(s,c).water-totals(original,c).water)<1e-5);});
+test('closed dam break conserves water and advected sediment; nonnegative',()=>{let s=flat();for(let z=0;z<c.ny;z++)for(let x=0;x<c.nx/2;x++){s[(z*c.nx+x)*12]=1.3;s[(z*c.nx+x)*12+3]=.3;}const before=totals(s,c);for(let k=0;k<300;k++)s=stepCPU(s,roots,c,closed);const after=totals(s,c);assert.ok(after.finite&&after.minH>=0&&after.minMs>=0);assert.ok(Math.abs(after.water/before.water-1)<1e-5);assert.ok(Math.abs(after.sediment/before.sediment-1)<1e-5);});
+test('quadratic drag is dissipative and matches analytic decay',()=>{const q=drag(2,0,1,.5,2,1.2);assert.ok(Math.abs(q[0]-2/(1+.5*1.2*.5*2*2))<1e-12);assert.equal(q[1],0);assert.deepEqual(drag(2,-1,1,0,2),[2,-1]);});
+test('settling matches exponential and exchanges exactly equal mass',()=>{const e=exchange(1,-1,-1,0,1,10,c);assert.ok(Math.abs(e.ms-Math.exp(-c.settling*10))<1e-12);assert.ok(Math.abs(e.ms+(e.bed+1)*c.rhoBulk-1)<1e-10);});
+test('erosion stops at hard bottom; no sediment created without stock',()=>{assert.ok(exchange(0,-1.45,-1,10,1,100,c).e<1e-10);assert.equal(exchange(0,-1,-1,0,1,100,c).d,0);});
+test('suspended plus bed mass conserved through 1000 exchange steps',()=>{let s=flat(),before=totals(s,c);for(let k=0;k<1000;k++)s=stepCPU(s,roots,c,{...closed,sediment:true});const after=totals(s,c);assert.ok(Math.abs(after.sediment-before.sediment)<.01);assert.ok(after.minMs>=0);});
+test('root raster area invariant under grid refinement',()=>{const f=makeForest(),r=rasterRoots(f.segments),c2={...CONFIG,nx:240,ny:160,dx:.3},r2=rasterRoots(f.segments,c2);const area=a=>a.reduce((x,y)=>x+y,0);assert.ok(Math.abs(area(r)*.36/(area(r2)*.09)-1)<.02);assert.ok(r.some(x=>x>0));});
+test('with drag disabled, paired simulations are identical',()=>{let a=flat(),b=a.slice();for(let k=0;k<30;k++){a=stepCPU(a,roots,c,{time:k*c.dt,vegetation:false});b=stepCPU(b,roots,c,{time:k*c.dt,vegetation:false});}assert.deepEqual(a,b);});

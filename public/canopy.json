@@ -1,0 +1,7 @@
+{
+  "vertices": 8517,
+  "stride": 36,
+  "source": "Nice2meetU2 \u2014 Mangrove Tree",
+  "license": "CC-BY-4.0",
+  "changes": "Upper geometry selected, scale adjusted, colour textures baked to vertices; lower trunk and roots replaced by shared procedural geometry."
+}

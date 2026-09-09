@@ -1,0 +1,34 @@
+{
+  "source": {
+    "author": "Nice2meetU2 (https://sketchfab.com/Nice2meetU2)",
+    "license": "CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)",
+    "source": "https://sketchfab.com/3d-models/mangrove-tree-5d4542431caa46f0b6f1feb089fc19dd",
+    "title": "Mangrove Tree"
+  },
+  "parts": [
+    {
+      "name": "bark",
+      "vertices": 8727,
+      "stride": 48,
+      "color": "image-0.png",
+      "normal": "image-2.png",
+      "arm": "image-1.png",
+      "roughness": 1,
+      "alphaMode": "OPAQUE"
+    },
+    {
+      "name": "leaves",
+      "vertices": 3693,
+      "stride": 48,
+      "color": "leaves-restored.png",
+      "normal": "image-4.png",
+      "arm": null,
+      "roughness": 0.580309,
+      "alphaMode": "MASK"
+    }
+  ],
+  "scale": 0.0045,
+  "verticalOffset": -0.0982324,
+  "rootSurfaceSamples": 59133,
+  "changes": "Uniform scale and ground alignment only; original complete roots/bark/leaves and original texture bytes preserved. Ground plane excluded. Leaf/card alpha restored from supplied original PNG (UV-aligned vertical flip)."
+}
